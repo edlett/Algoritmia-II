@@ -1,0 +1,221 @@
+/* ============================================================
+   traza.css — el reproductor de pseudocódigo y sus paneles.
+
+   Jerarquía visual, regla dura: mientras hay un paso activo, el resaltado
+   de sintaxis CEDE. Lo que tiene que leerse de un vistazo es el estado
+   (línea activa, celda leída, celda escrita), no los colores del código.
+
+   El color nunca va solo: la celda leída lleva además borde punteado, la
+   escrita borde sólido y negrita, la descartada tachado. Con
+   prefers-reduced-motion desaparece el movimiento pero no los estados.
+   ============================================================ */
+
+/* ---------- contenedor ---------- */
+.traza {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg);
+  overflow: hidden;
+  margin: 18px 0;
+}
+.traza-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; border-bottom: 1px solid var(--border);
+  background: var(--panel);
+}
+.traza-head .tt {
+  font-weight: var(--fw-semi); font-size: var(--fs-md);
+  letter-spacing: -0.01em; flex: 1; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.traza-head .fuente { font-size: var(--fs-xs); color: var(--fg3); }
+
+.traza-cuerpo { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); }
+@media (max-width: 860px) { .traza-cuerpo { grid-template-columns: 1fr; } }
+
+/* ---------- panel de código ---------- */
+.tcode {
+  border-right: 1px solid var(--border);
+  overflow: auto; max-height: 460px;
+  font-family: var(--mono); font-size: var(--fs-sm); line-height: 1.75;
+  background: var(--code-bg);
+}
+@media (max-width: 860px) { .tcode { border-right: none; border-bottom: 1px solid var(--border); } }
+
+.tcode .ln {
+  display: grid; grid-template-columns: 34px 26px 1fr;
+  align-items: baseline; padding: 0 10px 0 0;
+  border-left: 2px solid transparent;
+  transition: background var(--dur) var(--ease);
+}
+.tcode .ln .n {
+  text-align: right; padding-right: 8px;
+  color: var(--fg3); opacity: .55; font-size: var(--fs-xs);
+  user-select: none;
+}
+.tcode .ln .visitas {
+  font-size: var(--fs-xs); color: var(--fg3); opacity: .8;
+  text-align: right; padding-right: 8px; user-select: none;
+}
+.tcode .ln .src { white-space: pre; }
+
+.tcode .ln.activa {
+  background: var(--trace-line);
+  border-left-color: var(--trace-edge);
+}
+.tcode .ln.activa .n { opacity: 1; color: var(--trace-edge); font-weight: var(--fw-semi); }
+.tcode .ln.errada { background: var(--red-bg); border-left-color: var(--red); }
+
+/* resaltado tenue; se apaga aún más cuando hay una línea activa */
+.t-kw  { color: var(--kw); }
+.t-str { color: var(--str); }
+.t-num { color: var(--num-t); }
+.t-id  { color: inherit; }
+.t-op  { color: var(--fg2); }
+.tcode.corriendo .t-kw,
+.tcode.corriendo .t-str,
+.tcode.corriendo .t-num { opacity: .62; }
+.tcode.corriendo .ln.activa .t-kw,
+.tcode.corriendo .ln.activa .t-str,
+.tcode.corriendo .ln.activa .t-num { opacity: 1; }
+
+/* ---------- paneles de estado ---------- */
+.tpanels { overflow: auto; max-height: 460px; padding: 12px 14px; display: grid; gap: 16px; align-content: start; }
+.tpanel > h4 {
+  margin: 0 0 7px; font-size: var(--fs-xs); font-weight: var(--fw-lbl);
+  text-transform: uppercase; letter-spacing: .07em; color: var(--fg3);
+}
+
+/* variables */
+.tvars { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: var(--fs-sm); }
+.tvars td { padding: 3px 8px 3px 0; border-bottom: 1px solid var(--border); }
+.tvars td.k { color: var(--fg2); width: 40%; }
+.tvars td.v { font-variant-numeric: tabular-nums; }
+.tvars tr.cambio td.v { color: var(--green); font-weight: var(--fw-semi); }
+.tvars .antes { color: var(--fg3); font-weight: 400; }
+.tvars .vacio { color: var(--fg3); font-family: var(--sans); font-size: var(--fs-sm); }
+
+/* memoria: vectores y matrices */
+.tarr { margin-bottom: 12px; }
+.tarr .nom { font-family: var(--mono); font-size: var(--fs-sm); color: var(--fg2); margin-bottom: 4px; }
+.tgrid { display: inline-grid; gap: 2px; overflow-x: auto; max-width: 100%; padding-bottom: 3px; }
+.cel {
+  min-width: 30px; height: 28px; padding: 0 5px;
+  display: grid; place-items: center;
+  border: 1px solid var(--border2); border-radius: 5px;
+  background: var(--panel);
+  font-family: var(--mono); font-size: var(--fs-xs);
+  font-variant-numeric: tabular-nums;
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+.cel.vacia { color: var(--fg3); opacity: .5; }
+.cel.leida  { background: var(--cell-read);  border-style: dashed; border-color: var(--blue); }
+.cel.escrita { background: var(--cell-write); border-color: var(--green); font-weight: var(--fw-bold); }
+.cel.apagada { background: var(--cell-dim); color: var(--fg3); text-decoration: line-through; }
+.idxrow, .idxcol { font-family: var(--mono); font-size: 10px; color: var(--fg3); text-align: center; }
+.ptr { color: var(--ptr); font-size: 10px; text-align: center; height: 12px; line-height: 12px; }
+
+/* pila de llamadas */
+.tpila { display: flex; flex-direction: column-reverse; gap: 4px; }
+.marco {
+  border: 1px solid var(--border2); border-radius: 6px;
+  background: var(--frame-bg); padding: 5px 9px;
+  font-family: var(--mono); font-size: var(--fs-xs);
+  display: flex; align-items: center; gap: 7px;
+  animation: marcoIn .22s var(--ease);
+}
+.marco.activo { border-color: var(--trace-edge); background: var(--trace-line); }
+.marco .tipo { color: var(--fg3); font-size: 10px; text-transform: uppercase; letter-spacing: .05em; }
+@keyframes marcoIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* consola */
+.tsalida {
+  font-family: var(--mono); font-size: var(--fs-sm);
+  background: var(--code-bg); border: 1px solid var(--border);
+  border-radius: 6px; padding: 8px 10px; min-height: 40px;
+  max-height: 140px; overflow: auto; white-space: pre-wrap;
+}
+.tsalida .vacio { color: var(--fg3); }
+.tsalida div { animation: lineaIn .2s var(--ease); }
+@keyframes lineaIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* ---------- banda de explicación ---------- */
+.tnota {
+  padding: 9px 14px; border-top: 1px solid var(--border);
+  background: var(--panel); font-size: var(--fs-sm); color: var(--fg2);
+  min-height: 38px; display: flex; align-items: center; gap: 8px;
+}
+.tnota .ev {
+  font-size: 10px; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--fg3); border: 1px solid var(--border2); border-radius: 99px;
+  padding: 1px 7px; flex: none;
+}
+.tnota.error { background: var(--red-bg); color: var(--red); }
+.tnota .sug { color: var(--fg2); }
+
+/* ---------- controles ---------- */
+.tctl {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 9px 14px; border-top: 1px solid var(--border); background: var(--bg);
+}
+.tctl .iconbtn { border: 1px solid var(--border2); border-radius: 7px; width: 30px; height: 30px; display: grid; place-items: center; }
+.tctl .iconbtn:hover:not(:disabled) { background: var(--panel2); }
+.tctl .iconbtn:disabled { opacity: .35; cursor: default; }
+.tctl input[type=range] { flex: 1; min-width: 90px; accent-color: var(--trace-edge); }
+.tctl .paso { font-family: var(--mono); font-size: var(--fs-xs); color: var(--fg3); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tctl select { border: 1px solid var(--border2); border-radius: 7px; padding: 4px 6px; background: var(--bg); }
+
+/* ---------- hoja de prueba de escritorio ---------- */
+.hoja { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: var(--fs-sm); }
+.hoja th, .hoja td {
+  border: 1px solid var(--border2); padding: 4px 8px; text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.hoja th { background: var(--panel2); font-weight: var(--fw-semi); color: var(--fg2); text-align: center; }
+.hoja td:first-child, .hoja th:first-child { text-align: center; color: var(--fg3); }
+.hoja tr.actual td { background: var(--trace-line); }
+.hoja input {
+  width: 100%; border: none; background: transparent; text-align: right;
+  font-family: var(--mono); font-size: var(--fs-sm); padding: 0;
+}
+.hoja input:focus { outline: none; background: var(--panel2); }
+.hoja td.bien { background: var(--green-bg); color: var(--green); }
+.hoja td.mal  { background: var(--red-bg); color: var(--red); }
+.hoja td.mal button { color: var(--red); text-decoration: underline; font-size: var(--fs-xs); }
+.hojawrap { overflow-x: auto; }
+
+/* ---------- editor del banco de trabajo ---------- */
+.editor {
+  width: 100%; min-height: 300px; resize: vertical;
+  font-family: var(--mono); font-size: var(--fs-sm); line-height: 1.7;
+  border: 1px solid var(--border2); border-radius: var(--radius);
+  background: var(--code-bg); color: var(--code); padding: 12px 14px;
+  tab-size: 4;
+}
+.editor:focus { outline: 2px solid var(--violet); outline-offset: 1px; }
+.errlist { margin: 10px 0 0; padding: 0; list-style: none; }
+.errlist li {
+  border-left: 2px solid var(--red); background: var(--red-bg);
+  padding: 6px 10px; margin-bottom: 5px; border-radius: 0 6px 6px 0;
+  font-size: var(--fs-sm);
+}
+.errlist li .l { font-family: var(--mono); font-size: var(--fs-xs); color: var(--red); margin-right: 6px; }
+.errlist li .sug { display: block; color: var(--fg2); font-size: var(--fs-xs); margin-top: 2px; }
+
+/* ---------- bloque de código estático (sin traza) ---------- */
+.codigo {
+  font-family: var(--mono); font-size: var(--fs-sm); line-height: 1.7;
+  background: var(--code-bg); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 12px 14px; overflow-x: auto;
+  white-space: pre; margin: 12px 0;
+}
+.codigo-head {
+  display: flex; align-items: center; gap: 8px;
+  margin: 14px 0 -6px;
+}
+.codigo-head .et { font-size: var(--fs-xs); color: var(--fg3); text-transform: uppercase; letter-spacing: .06em; flex: 1; }
+
+/* ---------- movimiento reducido ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .traza *, .cel, .marco { transition: none !important; animation: none !important; }
+}

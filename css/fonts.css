@@ -1,0 +1,40 @@
+/* ============================================================
+   Fuentes locales (offline). Variables woff2 subset latino.
+   Geist  → cuerpo, interfaz, tablas y números.
+   Geist Mono → código, fechas y contadores.
+   Plus Jakarta Sans → titulares (h1/h2), peso 700-800.
+   Los iconos ya no son una fuente: son SVG en línea (js/icons.js).
+   ============================================================ */
+
+@font-face {
+  font-family: 'Geist';
+  src: url('../assets/fonts/geist.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('../assets/fonts/geist-mono.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  src: url('../assets/fonts/plus-jakarta-sans.woff2') format('woff2');
+  font-weight: 200 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ---------- Iconos SVG ---------- */
+.icon {
+  width: 1em; height: 1em; flex: none;
+  display: inline-block; vertical-align: -0.135em;
+  overflow: visible;
+}
+.icon.lg { width: 1.35em; height: 1.35em; }
+.icon.xl { width: 1.9em; height: 1.9em; }

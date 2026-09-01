@@ -1,0 +1,15 @@
+{
+  "name": "Algoritmia y Programación II · IST 2089",
+  "short_name": "AyP II",
+  "description": "Entorno de estudio de Algoritmia y Programación II: intérprete real del pseudocódigo del profesor, con traza paso a paso y hoja de prueba de escritorio.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "lang": "es",
+  "icons": [
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

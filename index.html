@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Algoritmia y Programación II · IST 2089 · Entorno de estudio 2026-30</title>
+  <meta name="description" content="Entorno de estudio de Algoritmia y Programación II (IST 2089, 2026-30): un intérprete real del pseudocódigo del profesor, con traza paso a paso, hoja de prueba de escritorio y los cuatro cortes del semestre.">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+  <link rel="manifest" href="manifest.json?v=26">
+  <link rel="icon" href="assets/icon-192.png">
+
+  <!-- KaTeX, vendorizado: la app no pide nada a la red -->
+  <link rel="stylesheet" href="assets/katex/katex.min.css?v=26">
+
+  <link rel="stylesheet" href="css/fonts.css?v=26">
+  <link rel="stylesheet" href="css/tokens.css?v=26">
+  <link rel="stylesheet" href="css/base.css?v=26">
+  <link rel="stylesheet" href="css/layout.css?v=26">
+  <link rel="stylesheet" href="css/components.css?v=26">
+  <link rel="stylesheet" href="css/traza.css?v=26">
+  <link rel="stylesheet" href="css/views.css?v=26">
+</head>
+<body>
+  <div id="app"></div>
+
+  <!-- Motor LaTeX -->
+  <script defer src="assets/katex/katex.min.js?v=26"></script>
+  <script defer src="assets/katex/auto-render.min.js?v=26"></script>
+
+  <!-- Motor de pseudocódigo -->
+  <script defer src="pseudo/lexer.js?v=26"></script>
+  <script defer src="pseudo/parser.js?v=26"></script>
+  <script defer src="pseudo/fmt.js?v=26"></script>
+  <script defer src="pseudo/interp.js?v=26"></script>
+
+  <!-- Datos del curso -->
+  <script defer src="data/core.js?v=26"></script>
+  <script defer src="data/patrones.js?v=26"></script>
+  <script defer src="data/unidad1.js?v=26"></script>
+  <script defer src="data/unidad2.js?v=26"></script>
+  <script defer src="data/unidad3.js?v=26"></script>
+  <script defer src="data/unidad4.js?v=26"></script>
+  <script defer src="data/unidad5.js?v=26"></script>
+  <script defer src="data/temas-extra.js?v=26"></script>
+  <script defer src="data/banco1.js?v=26"></script>
+  <script defer src="data/banco2.js?v=26"></script>
+  <script defer src="data/banco3.js?v=26"></script>
+  <script defer src="data/banco4.js?v=26"></script>
+  <script defer src="data/propuestos.js?v=26"></script>
+  <script defer src="data/examenes.js?v=26"></script>
+
+  <!-- Núcleo -->
+  <script defer src="js/icons.js?v=26"></script>
+  <script defer src="js/katex.js?v=26"></script>
+  <script defer src="js/store.js?v=26"></script>
+  <script defer src="js/model.js?v=26"></script>
+  <script defer src="js/canvas.js?v=26"></script>
+  <script defer src="js/viz.js?v=26"></script>
+  <script defer src="js/traza.js?v=26"></script>
+  <script defer src="js/buscar.js?v=26"></script>
+  <script defer src="js/ui.js?v=26"></script>
+
+  <!-- Vistas -->
+  <script defer src="js/views-corte.js?v=26"></script>
+  <script defer src="js/views-tools.js?v=26"></script>
+
+  <!-- Arranque -->
+  <script defer src="js/router.js?v=26"></script>
+  <script defer src="js/app.js?v=26"></script>
+
+  <script>
+    /* Service worker: sólo bajo http(s) y NUNCA en localhost.
+       Su handler usa ignoreSearch, así que en desarrollo se traga el ?v= y
+       sirve versiones viejas de cualquier archivo que edites. Abriendo
+       index.html con file:// la app ya funciona sin conexión igualmente. */
+    const local = ['localhost', '127.0.0.1', ''].indexOf(location.hostname) >= 0;
+    if ('serviceWorker' in navigator && location.protocol.startsWith('http') && !local) {
+      addEventListener('load', () => navigator.serviceWorker.register('sw.js?v=26').catch(() => {}));
+    }
+  </script>
+</body>
+</html>

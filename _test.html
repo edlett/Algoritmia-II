@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"><title>Pruebas del motor</title>
+<style>body{font:13px ui-monospace,Consolas,monospace;background:#111;color:#ddd;padding:16px;line-height:1.5}
+.ok{color:#4ade80}.mal{color:#f76d67}pre{white-space:pre-wrap;margin:2px 0 10px;color:#9aa}</style>
+</head><body>
+<div id="out">corriendo…</div>
+<script>
+/* Carga con cache-busting: este harness se usa mientras se edita el motor,
+   y el disco del navegador se queda con la versión vieja si no se fuerza. */
+const __ts = Date.now();
+['lexer', 'parser', 'fmt', 'interp'].forEach(f =>
+  document.write('<scr' + 'ipt src="pseudo/' + f + '.js?t=' + __ts + '"></scr' + 'ipt>'));
+</script>
+<script>
+const P = AYP.pseudo;
+const L = [];
+let ok = 0, mal = 0;
+
+function T(nombre, fuente, opts, comprobar) {
+  const prog = P.compilar(fuente);
+  if (prog.errores.length) {
+    L.push('<span class="mal">SINTAXIS ' + nombre + '</span><pre>' +
+      prog.errores.map(e => 'L' + e.linea + ': ' + e.mensaje + (e.sugerencia ? ' // ' + e.sugerencia : '')).join('\n') + '</pre>');
+    mal++; return;
+  }
+  const r = P.ejecutar(prog, opts || {});
+  let veredicto;
+  try { veredicto = comprobar(r, prog); } catch (e) { veredicto = 'excepción: ' + e.message; }
+  if (veredicto === true) { ok++; L.push('<span class="ok">OK  ' + nombre + '</span>  <span style="color:#666">' + r.pasos.length + ' pasos, salida: ' + JSON.stringify(r.salida) + '</span>'); }
+  else {
+    mal++;
+    L.push('<span class="mal">MAL ' + nombre + ' → ' + veredicto + '</span><pre>salida=' + JSON.stringify(r.salida) +
+      '\nerror=' + JSON.stringify(r.error) + '\núltimo=' + JSON.stringify(r.pasos.slice(-2).map(p => p.linea + ':' + p.nota)) + '</pre>');
+  }
+}
+
+/* ---- 1. Mayor de un vector (Manual §1.1 ej. 1) ---- */
+T('mayor de vector', `INICIO
+    LEA N
+    PARA I = 1, N, 1 HAGA
+        LEA V(I)
+    F-PARA
+    MAY ← V(1)
+    PARA I = 2, N, 1 HAGA
+        SI (V(I) > MAY) ENTONCES
+            MAY ← V(I)
+        F-SI
+    F-PARA
+    ESCRIBA "El mayor elemento es", MAY
+FIN`, { entradas: [5, 3, 9, 2, 7, 4] },
+  r => r.salida[0] === 'El mayor elemento es 9' || 'salida ' + r.salida[0]);
+
+/* ---- 2. Burbuja (Manual §1.1 ej. 2) ---- */
+T('burbuja', `INICIO
+    LEA N
+    PARA I = 1, N, 1 HAGA
+        LEA A(I)
+    F-PARA
+    PARA I = 1, N-1, 1 HAGA
+        PARA J = I+1, N, 1 HAGA
+            SI (A(I) > A(J)) ENTONCES
+                T ← A(I)
+                A(I) ← A(J)
+                A(J) ← T
+            F-SI
+        F-PARA
+    F-PARA
+    PARA I = 1, N, 1 HAGA
+        ESCRIBA A(I)
+    F-PARA
+FIN`, { entradas: [5, 5, 2, 9, 1, 7] },
+  r => r.salida.join(',') === '1,2,5,7,9' || 'quedó ' + r.salida.join(','));
+
+/* ---- 3. Subrutina + función (Manual §1.2.5 ej. 1) ---- */
+T('subrutina + funcion', `SUBRUTINA leavector (TAMANO, VEC)
+    PARA I = 1, TAMANO HAGA
+        LEA VEC(I)
+    F_PARA
+F_SUBRUTINA
+
+FUNCION mayor (TAMANO, VEC)
+    MAY ← VEC(1)
+    PARA I = 2, TAMANO HAGA
+        SI (MAY < VEC(I)) ENTONCES
+            MAY ← VEC(I)
+        F_SI
+    F_PARA
+    mayor ← MAY
+F_FUNCION
+
+INICIO
+    LEA N, M
+    EJECUTE leavector(N, A)
+    EJECUTE leavector(M, B)
+    ESCRIBA "Mayor de A", mayor(N, A)
+    ESCRIBA "Mayor de B", mayor(M, B)
+FIN`, { entradas: [3, 2, 4, 8, 1, 6, 9] },
+  r => (r.salida[0] === 'Mayor de A 8' && r.salida[1] === 'Mayor de B 9') || JSON.stringify(r.salida));
+
+/* ---- 4. Factorial recursivo (Manual §3.1 ej. 1) ---- */
+T('factorial recursivo', `FUNCION factorial (N)
+    SI (N = 0) ENTONCES
+        factorial ← 1
+    SINO
+        factorial ← N * factorial(N - 1)
+    F_SI
+F_FUNCION
+
+INICIO
+    LEA X
+    ESCRIBA "factorial", factorial(X)
+FIN`, { entradas: [6] },
+  r => r.salida[0] === 'factorial 720' || r.salida[0]);
+
+/* ---- 5. Cadenas: dígitos pares (Manual §2.2 ej. 1) ---- */
+T('digitos pares', `INICIO
+    LEA N
+    PAR ← 0
+    C ← STR(N)
+    L ← LONG(C)
+    PARA I = 1, L, 1 HAGA
+        D ← SUBSTR(C, I, 1)
+        NUM ← VAL(D)
+        SI (NUM MOD 2 = 0) ENTONCES
+            PAR ← PAR + 1
+        F-SI
+    F-PARA
+    ESCRIBA "pares:", PAR
+FIN`, { entradas: ['246813'] },
+  r => r.salida[0] === 'pares: 4' || r.salida[0]);
+
+/* ---- 6. Invertir cadena con paso negativo y concatenación ---- */
+T('invertir cadena', `FUNCION invertir (C)
+    L ← LONG(C)
+    C2 ← ''
+    PARA I = L, 1, -1 HAGA
+        LETRA ← SUBSTR(C, I, 1)
+        C2 ← C2 || LETRA
+    F-PARA
+    invertir ← C2
+FIN_FUNCION
+
+INICIO
+    LEA A
+    ESCRIBA invertir(A)
+FIN`, { entradas: ['argentina'] },
+  r => r.salida[0] === 'anitnegra' || r.salida[0]);
+
+/* ---- 7. MQ con bandera ---- */
+T('busqueda con bandera', `INICIO
+    LEA N
+    PARA I = 1, N, 1 HAGA
+        LEA V(I)
+    F-PARA
+    LEA X
+    SW ← 0
+    I ← 1
+    MQ ((I <= N) y (SW = 0)) HAGA
+        SI (V(I) = X) ENTONCES
+            SW ← 1
+        SINO
+            I ← I + 1
+        F-SI
+    F_MQ
+    SI (SW = 1) ENTONCES
+        ESCRIBA "encontrado en", I
+    SINO
+        ESCRIBA "no existe"
+    F-SI
+FIN`, { entradas: [5, 4, 8, 15, 16, 23, 16] },
+  r => r.salida[0] === 'encontrado en 4' || r.salida[0]);
+
+/* ---- 8. Matriz: transpuesta ---- */
+T('transpuesta', `INICIO
+    LEA N
+    PARA I = 1, N, 1 HAGA
+        PARA J = 1, N, 1 HAGA
+            LEA A(I,J)
+        F-PARA
+    F-PARA
+    PARA I = 1, N, 1 HAGA
+        PARA J = 1, N, 1 HAGA
+            B(I,J) ← A(J,I)
+        F-PARA
+    F-PARA
+    ESCRIBA B(1,2), B(2,1)
+FIN`, { entradas: [2, 1, 2, 3, 4] },
+  r => r.salida[0] === '3 2' || r.salida[0]);
+
+/* ---- 9. DIALECTO PARCIAL: el punto 1 del preparcial (R4_Info) ---- */
+T('parcial R4_Info', `Inicio
+    Entero A[9], B[9], C[9], M[9][9], S, Y, X
+    S ← 8
+    Para i = 1, S, 1 hacer
+        X ← A[i]
+        Y ← CalculaC(X, B)
+        C[i] ← M[X][Y]
+    Finpara
+    Para i = 1, S, 1 hacer
+        Escribir C[i]
+    Finpara
+Fin
+
+Funcion CalculaC(entero R, entero V[9]) entero
+    Entero CC, au
+    au ← R
+    Si (au > 3) entonces
+        au ← au - 2
+    FinSi
+    CC ← V[au]
+    Retorna CC
+Fin CalculaC`, {
+  precarga: {
+    A: [2, 5, 1, 7, 3, 6, 4, 8, 9],
+    B: [1, 3, 2, 5, 4, 7, 6, 9, 8],
+    M: [
+      [11, 12, 13, 14, 15, 16, 17, 18, 19],
+      [21, 22, 23, 24, 25, 26, 27, 28, 29],
+      [31, 32, 33, 34, 35, 36, 37, 38, 39],
+      [41, 42, 43, 44, 45, 46, 47, 48, 49],
+      [51, 52, 53, 54, 55, 56, 57, 58, 59],
+      [61, 62, 63, 64, 65, 66, 67, 68, 69],
+      [71, 72, 73, 74, 75, 76, 77, 78, 79],
+      [81, 82, 83, 84, 85, 86, 87, 88, 89],
+      [91, 92, 93, 94, 95, 96, 97, 98, 99]]
+  }
+},
+  r => {
+    /* A[1]=2 → au=2 → CC=B[2]=3 → C[1]=M[2][3]=23 */
+    if (r.error) return 'error ' + r.error.mensaje;
+    return r.salida[0] === '23' || 'primer C = ' + r.salida[0];
+  });
+
+/* ---- 10. Recursividad sobre subrutina: leer vector ---- */
+T('subrutina recursiva', `SUBRUTINA leer(V, T, I)
+    SI (I <= T) ENTONCES
+        LEA V(I)
+        EJECUTE leer(V, T, I + 1)
+    F_SI
+F_SUBRUTINA
+
+FUNCION suma (X, I)
+    SI (I = 1) ENTONCES
+        suma ← X(1)
+    SINO
+        suma ← suma(X, I - 1) + X(I)
+    F_SI
+F_FUNCION
+
+INICIO
+    LEA N
+    EJECUTE leer(A, N, 1)
+    ESCRIBA suma(A, N)
+FIN`, { entradas: [4, 10, 20, 30, 40] },
+  r => r.salida[0] === '100' || (r.error ? r.error.mensaje : r.salida[0]));
+
+/* ---- 11. Errores didácticos ---- */
+(function () {
+  const casos = [
+    ['= en vez de flecha', 'INICIO\n  X = 5\nFIN', 'flecha'],
+    ['sin caso base', 'FUNCION f(N)\n  f ← f(N+1)\nF_FUNCION\nINICIO\n ESCRIBA f(1)\nFIN', 'anidadas'],
+    ['funcion con EJECUTE', 'FUNCION g(A)\n g ← A\nF_FUNCION\nINICIO\n EJECUTE g(3)\nFIN', 'función'],
+    ['indice 0', 'INICIO\n V(1) ← 5\n ESCRIBA V(0)\nFIN', 'empiezan en 1'],
+    ['funcion devuelve vector', 'FUNCION h(A)\n h ← A\nF_FUNCION\nINICIO\n B(1) ← 2\n ESCRIBA h(B)\nFIN', 'conjunto']
+  ];
+  casos.forEach(([nombre, src, esperado]) => {
+    const prog = P.compilar(src);
+    let txt = prog.errores.map(e => (e.mensaje || '') + ' ' + (e.sugerencia || '')).join(' | ');
+    if (!prog.errores.length) {
+      const r = P.ejecutar(prog, { entradas: [] });
+      txt = r.error ? (r.error.mensaje + ' ' + (r.error.sugerencia || '')) : '(no dio error)';
+    }
+    if (txt.indexOf(esperado) >= 0) { ok++; L.push('<span class="ok">OK  diagnóstico: ' + nombre + '</span>'); }
+    else { mal++; L.push('<span class="mal">MAL diagnóstico: ' + nombre + '</span><pre>' + txt + '</pre>'); }
+  });
+})();
+
+/* ---- 12. Conmutador de dialecto ---- */
+(function () {
+  const src = `INICIO
+    LEA N
+    PARA I = 1, N, 1 HAGA
+        SI (V(I) > MAY) ENTONCES
+            MAY ← V(I)
+        F-SI
+    F-PARA
+FIN`;
+  const prog = P.compilar(src);
+  const a = P.fmt(prog.ast, 'libro'), b = P.fmt(prog.ast, 'parcial');
+  const bien = a.indexOf('V(I)') > 0 && a.indexOf('F-PARA') > 0 &&
+    b.indexOf('V[I]') > 0 && b.indexOf('Finpara') > 0;
+  if (bien) { ok++; L.push('<span class="ok">OK  conmutador de dialecto</span><pre>' + b + '</pre>'); }
+  else { mal++; L.push('<span class="mal">MAL conmutador</span><pre>' + a + '\n---\n' + b + '</pre>'); }
+})();
+
+/* ---- 13. Traza: forma de los pasos ---- */
+(function () {
+  const prog = P.compilar('INICIO\n  A(1) ← 7\n  ESCRIBA A(1)\nFIN');
+  const r = P.ejecutar(prog, {});
+  const p = r.pasos.find(x => x.evento === 'asignacion');
+  const bien = p && p.escribe && p.escribe.a && p.escribe.a[0][0] === 1 &&
+    p.arrays.a && p.arrays.a.datos[0] === 7 && p.nota.length > 0;
+  if (bien) { ok++; L.push('<span class="ok">OK  forma de la traza</span>'); }
+  else { mal++; L.push('<span class="mal">MAL forma de la traza</span><pre>' + JSON.stringify(p, null, 1) + '</pre>'); }
+})();
+
+
+/* ---- 14. Ida y vuelta de dialecto: lo reimpreso tiene que volver a compilar ---- */
+(function () {
+  const casos = [
+    ['funcion con tipo de retorno', `Funcion CalculaC(entero R, entero V[9]) entero
+    Entero CC, au
+    au <- R
+    Retorna CC
+Fin CalculaC
+
+Inicio
+    Entero A[9]
+    A[1] <- 1
+Fin`],
+    ['subrutina y funcion del manual', `SUBRUTINA leavector (TAM, VEC)
+    PARA I = 1, TAM, 1 HAGA
+        LEA VEC(I)
+    F_PARA
+F_SUBRUTINA
+
+FUNCION mayor (TAM, VEC)
+    MAY <- VEC(1)
+    mayor <- MAY
+F_FUNCION
+
+INICIO
+    LEA N
+    EJECUTE leavector(N, A)
+    ESCRIBA mayor(N, A)
+FIN`]
+  ];
+  casos.forEach(([nombre, src]) => {
+    const b = P.compilar(src);
+    if (b.errores.length) { mal++; L.push('<span class="mal">MAL ida-vuelta (base) ' + nombre + '</span>'); return; }
+    let fallo = null;
+    ['libro', 'parcial'].forEach(d => {
+      const txt = P.fmt(b.ast, d);
+      const re = P.compilar(txt);
+      if (re.errores.length) fallo = d + ': L' + re.errores[0].linea + ' ' + re.errores[0].mensaje + String.fromCharCode(10) + txt;
+    });
+    if (!fallo) { ok++; L.push('<span class="ok">OK  ida y vuelta de dialecto: ' + nombre + '</span>'); }
+    else { mal++; L.push('<span class="mal">MAL ida y vuelta: ' + nombre + '</span><pre>' + fallo + '</pre>'); }
+  });
+})();
+
+document.getElementById('out').innerHTML =
+  '<h3>' + ok + ' bien · ' + mal + ' mal</h3>' + L.join('<br>');
+</script>
+</body></html>

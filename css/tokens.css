@@ -1,0 +1,128 @@
+/* ============================================================
+   tokens.css — paleta base clara/oscura y escala tipográfica.
+   Claro por defecto, oscuro con [data-theme="dark"].
+
+   COLOR: tres funciones, sin excepciones.
+     · neutro  (--fg/--fg2/--fg3)  todo lo estructural
+     · acento  (--violet)          el examen y lo que apunta a él
+     · semántico  verde = dominado/correcto · ámbar = pendiente
+     · rojo    SOLO errores reales
+   --blue queda reservado a las gráficas, nunca a la interfaz.
+
+   TIPOGRAFÍA: seis pasos en rem. Ningún font-size fuera de estos
+   tokens — así el ajuste «Tamaño de letra» funciona de verdad.
+   ============================================================ */
+
+:root {
+  --bg: #ffffff;
+  --fg: #111111;
+  --fg2: #666666;   /* 5,7:1 sobre blanco */
+  --fg3: #757575;   /* 4,6:1 sobre blanco — mínimo AA */
+
+  --border: #eaeaea;
+  --border2: #e2e2e2;
+  --panel: #fafafa;
+  --panel2: #f4f4f5;
+
+  --code: #1a1a1a;
+  --code-bg: #fafafa;
+
+  --blue: #0068d6;   --blue-bg: #e8f1fd;
+  --green: #127e39;  --green-bg: #e6f4ea;
+  --amber: #a35b00;  --amber-bg: #fdf1e0;
+  --red: #c8362f;    --red-bg: #fdeceb;
+  --violet: #6d3ce0; --violet-bg: #f0eafe;
+
+  --grid: #ededed;
+
+  --shadow: 0 1px 2px rgba(0, 0, 0, .05), 0 8px 24px rgba(0, 0, 0, .04);
+  --shadow-lg: 0 2px 6px rgba(0, 0, 0, .06), 0 18px 50px rgba(0, 0, 0, .09);
+
+  --radius: 10px;
+  --radius-lg: 14px;
+  --maxw: 860px;
+  --maxw-wide: 1220px;
+  --nav-h: 56px;
+  --rail: 286px;
+
+  --sans: 'Geist', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --display: 'Plus Jakarta Sans', 'Geist', system-ui, sans-serif;
+  --mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  /* ---- escala tipográfica (seis pasos) ---- */
+  --fs-xs:   0.75rem;    /* 12 px — metadatos, insignias, etiquetas */
+  --fs-sm:   0.8125rem;  /* 13 px — texto secundario, controles     */
+  --fs-md:   0.9375rem;  /* 15 px — cuerpo de tarjetas              */
+  --fs-base: 1rem;       /* 16 px — cuerpo de lectura               */
+  --fs-lg:   1.125rem;   /* 18 px — entradilla, h3                  */
+  --fs-xl:   1.5rem;     /* 24 px — h2                              */
+  --fs-h1:   clamp(2.25rem, 4.5vw, 3.25rem);
+
+  /* ---- pesos ---- */
+  --fw-body: 400;
+  --fw-med: 500;
+  --fw-lbl: 550;
+  --fw-semi: 600;
+  --fw-bold: 700;
+
+
+  /* ---- sub-paleta de traza ----
+     Ningún matiz nuevo: todo se deriva de los tokens que ya existen.
+     El azul es el color de la visualización (nunca de la interfaz). */
+  --trace-line: color-mix(in srgb, var(--blue) 12%, transparent);
+  --trace-edge: var(--blue);
+  --cell-read:  color-mix(in srgb, var(--blue) 18%, transparent);
+  --cell-write: color-mix(in srgb, var(--green) 22%, transparent);
+  --cell-dim:   color-mix(in srgb, var(--fg3) 12%, transparent);
+  --ptr:        var(--amber);
+  --frame-bg:   var(--panel2);
+
+  /* resaltado de sintaxis: deliberadamente tenue, cede ante el estado */
+  --kw:  #7b1fa2;
+  --str: #0a7d3f;
+  --num-t: #1553b6;
+  --com: #9a9a9a;
+
+  --dur: 180ms;
+  --ease: cubic-bezier(.16, 1, .3, 1);
+}
+
+html[data-theme="dark"] {
+  --bg: #000000;
+  --fg: #ededed;
+  --fg2: #a0a0a0;
+  --fg3: #8a8a8a;   /* 6,1:1 sobre negro */
+
+  --border: #252525;
+  --border2: #2e2e2e;
+  --panel: #0b0b0b;
+  --panel2: #141414;
+
+  --code: #e6e6e6;
+  --code-bg: #0c0c0c;
+
+  --blue: #4a9bff;   --blue-bg: #0f2033;
+  --green: #4ade80;  --green-bg: #0e2417;
+  --amber: #f0a94a;  --amber-bg: #2a1e0c;
+  --red: #f76d67;    --red-bg: #2c1312;
+  --violet: #a884f5; --violet-bg: #1b1330;
+
+  --grid: #1c1c1c;
+
+  --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 30px rgba(0, 0, 0, .35);
+  --shadow-lg: 0 2px 8px rgba(0, 0, 0, .5), 0 20px 60px rgba(0, 0, 0, .5);
+
+  --kw:  #c792ea;
+  --str: #7ee0a4;
+  --num-t: #8ab4ff;
+  --com: #6a6a6a;
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur: 0ms; }
+}
+html.reduce-motion * {
+  animation-duration: .001ms !important;
+  transition-duration: .001ms !important;
+}
