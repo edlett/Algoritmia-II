@@ -1,4 +1,4 @@
-# Algoritmia y Programación II — IST 2089 · Entorno de estudio 2026-30
+# Algoritmia y Programación II — IST 2089
 
 Aplicación web local (sin backend, sin instalación, sin internet) para estudiar **Algoritmia y
 Programación II** con Daladier Jabba, periodo **2026-30** (27 de julio – 2 de diciembre de 2026).
